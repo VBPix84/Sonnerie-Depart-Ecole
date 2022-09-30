@@ -12,36 +12,6 @@
 
     <div class="container col-10 col-sm-5 my-3 content-align-center">
 
-
-
-<!-- TESTS TOATS 
-    
-<button type="button" class="btn btn-primary" id="liveToastBtn">Enregistrer</button>
-
-<div class="toast-container position-fixed p-3" z-index="2000">
-  <div id="liveToast"class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-      <div class="toast-body">
-        Données enregistrées
-      </div>
-      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-  </div>
-</div>
-<script>
-const toastTrigger = document.getElementById('liveToastBtn')
-const toastLiveExample = document.getElementById('liveToast')
-if (toastTrigger) {
-toastTrigger.addEventListener('click', () => {
-const toast = new bootstrap.Toast(toastLiveExample)
-
-toast.show()
-})
-}
-  </script>
- FIN TESTS TOATS (+Script en bas de page-->
-
-
       <div class="card offset-md-1">
         <div class="card-header text-center">
           <b>Départ Ecole</b>
@@ -117,11 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   file_put_contents($nomDuFichier, json_encode($aEnregistrer));
 
 ?>
-<div class="alert alert-success d-flex align-items-center" role="alert">
-   <div>
-  <i class="bi bi-check-circle-fill"></i>&nbsp;Données enregistrées !
-  </div>
-</div>
+        <div class="alert alert-success d-flex align-items-center" role="alert">
+          <div>
+          <i class="bi bi-check-circle-fill"></i>&nbsp;Données enregistrées !
+          </div>
+        </div>
 <?php
 
 }
@@ -167,28 +137,13 @@ if(isset($_GET['debug']) == true) {
 }
 ?>
 
-</div>
-<nav class="navbar fixed-bottom navbar-dark bg-dark">
-  <div class="container-fluid  justify-content-center ">
-  <button class="btn btn-outline-light" type="submit" id="btnEnregistrer">Enregistrer</button>
-  </div>
-</nav>
-</form>
+        </div>
+        <nav class="navbar fixed-bottom navbar-dark bg-dark">
+          <div class="container-fluid  justify-content-center ">
+          <button class="btn btn-outline-light" type="submit" id="btnEnregistrer">Enregistrer</button>
+          </div>
+        </nav>
+      </form>
     </div>
-
-    
-    
-    <script>
-const toastTrigger = document.getElementById('liveToastBtn')
-const toastLiveExample = document.getElementById('liveToast')
-if (toastTrigger) {
-  toastTrigger.addEventListener('click', () => {
-    const toast = new bootstrap.Toast(toastLiveExample)
-
-    toast.show()
-  })
-}
-    </script>
-
   </body>
 </html>
