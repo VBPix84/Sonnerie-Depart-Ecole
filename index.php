@@ -10,13 +10,7 @@
   </head>
   <body>
 
-    <div class="container col-10 col-sm-5 my-3 content-align-center">
 
-      <div class="card offset-md-1">
-        <div class="card-header text-center">
-          <b>Départ Ecole</b>
-        </div>
-        <div class="card-body">
 <?php
 
 /* 
@@ -49,6 +43,7 @@ Modes d'affichages :
 */
 if(isset($_GET['admin']) == true) {
   $nbDates = count($parsedJson) - 1;
+    echo '<div class="text-center mt-3"><span class="badge bg-danger">Mode Administrateur</span></div>';
 }
 
 /*
@@ -59,6 +54,21 @@ pour le JSON (le fichier est COMPLETEMENT réécrit puis ré-enregistré)
 
   - $enregistrement => Stock le tableau en cours de réécriture
 */
+?>
+
+<div class="container col-10 col-sm-5 my-3 content-align-center">
+<div class="card">
+  <div class="card-header text-center">
+    <b>Départ Ecole</b>
+  </div>
+  <div class="card-body">
+
+<?php
+
+if(isset($_GET['admin']) == true) {
+  $nbDates = count($parsedJson) - 1;
+    echo '<div class="text-center mb-3"><span class="badge bg-warning text-dark">'.$nbDates.' entrées affichées</span></div>';
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
@@ -109,6 +119,8 @@ Affichage du formulaire :
 
   On rappelle la fonction $parsenJson pour actualiser l'affichage même après l'envoi du formulaire
 */
+
+
 
 echo '<form method="post" action="">';
 
