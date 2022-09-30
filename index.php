@@ -10,7 +10,6 @@
   </head>
   <body>
 
-
 <?php
 
 /* 
@@ -33,7 +32,7 @@ Initialisation des variables :
 */
 $nomDuFichier = "calDepartEcoleV2.json";
 $parsedJson = parseJson($nomDuFichier);
-$nbDates = 7;
+$nbDates = 14;
 
 /*
 Modes d'affichages : 
@@ -89,9 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   */
 
   for($i = 0; $i <= $nbDates; $i++) { 
-    $dateJourYMD = date("Y-m-d", strtotime('+ '.$i.' days'));
+    $dateJour = new DateTime();
+    $dateJour->modify('+ '.$i.' days');
+    $dateJourYMD = $dateJour->format('Y-m-d');
+
     $enregistrement[$dateJourYMD] = (array_key_exists($dateJourYMD, $_POST)) ? true : false;
-    // echo $dateJourYMD.' => '.$enregistrement[$dateJourYMD].' - Ancien : '.$parsedJson[$dateJourYMD].'<br>';
   }
   $aEnregistrer = array_merge($parsedJson, $enregistrement);
   file_put_contents($nomDuFichier, json_encode($aEnregistrer));
@@ -109,9 +110,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 /*
 Affichage du formulaire :
 
-  Pour chaque entrée selon le mode d'affichage (Toutes les entrées ou 7 jours):
+  Pour chaque entrée selon le mode d'affichage (Toutes les entrées ou 14 jours):
     - $dateJourYMD => Une case à cocher nommée avec la date format AAAAMMJJ
-    - $dateJourDMY => Un label présentant la date en format long
+    - $dateFrançaise => variable stockant la date en format FR
     - $declenchement => Stock 'checked' si la valeur est true pour cocher la case
     - $i => On commence à 1 pour commencer à demain...
 
@@ -120,21 +121,29 @@ Affichage du formulaire :
   On rappelle la fonction $parsenJson pour actualiser l'affichage même après l'envoi du formulaire
 */
 
-
-
 echo '<form method="post" action="">';
 
 $parsedJson = parseJson($nomDuFichier);
 for($i = 1; $i < $nbDates +1; $i++) {
-  $dateJourYMD = date("Y-m-d", strtotime('+ '.$i.' days'));
-  $dateJourDMY = date("D j M Y", strtotime('+ '.$i.' days'));
+
+  $dateJour = new DateTime();
+  $dateJour->modify('+ '.$i.' days');
+
+  // Création de la date format AAMMJJ
+  $dateJourYMD = $dateJour->format('Y-m-d');
+
+  // Pour passer en français la date affichée
+  $listeSemaine = array("Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi");
+  $listeMois = array(1=>"janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "decembre");
+
+  $dateFrancaise = $listeSemaine[$dateJour->format('w')].' '.$dateJour->format('j').' '.$listeMois[$dateJour->format('n')];
   $declenchement = ($parsedJson[$dateJourYMD] == true) ? 'checked':'';
-?>
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" role="switch" name="<?php echo($dateJourYMD); ?>" id="<?php echo($dateJourYMD); ?>" <?php echo $declenchement; ?>>
-          <label class="form-check-label" for="<?php echo($dateJourYMD); ?>"><?php echo($dateJourDMY); ?></label>
-        </div>
-<?php
+
+  // Affiche la checkbox de la date
+  echo '<div class="form-check form-switch">';
+  echo '<input class="form-check-input" type="checkbox" role="switch" name="'.$dateJourYMD.'" id="'.$dateJourYMD.'" '.$declenchement.'>';
+  echo '<label class="form-check-label" for="'.$dateJourYMD.'">'.$dateFrancaise.'</label>';
+  echo '</div>';
 }
 
 /*
