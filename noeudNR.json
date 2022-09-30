@@ -1,0 +1,174 @@
+[
+  {
+      "id": "3713c2fa81a8b881",
+      "type": "group",
+      "z": "9dcca6ec57a1a95f",
+      "name": "Notification du dimanche soir pour spécifier les sonneries \"départ école de la semaine\"",
+      "style": {
+          "label": true
+      },
+      "nodes": [
+          "0a358313d329d54d",
+          "db4a8b745ed12e3a",
+          "820eca0caa8f0eef",
+          "ea95ee514ab2e212",
+          "daecafdb3f791948",
+          "8ee9d0c3e3d4f1e8",
+          "5d95df89c261ed80"
+      ],
+      "x": 10,
+      "y": 10,
+      "w": 552,
+      "h": 202
+  },
+  {
+      "id": "0a358313d329d54d",
+      "type": "http request",
+      "z": "9dcca6ec57a1a95f",
+      "g": "3713c2fa81a8b881",
+      "name": "",
+      "method": "GET",
+      "ret": "obj",
+      "paytoqs": "ignore",
+      "url": "http://192.168.1.2/projects/sonnerieDepartEcole/calDepartEcoleV2.json",
+      "tls": "",
+      "persist": false,
+      "proxy": "",
+      "authType": "",
+      "senderr": false,
+      "x": 190,
+      "y": 1220,
+      "wires": [
+          [
+              "db4a8b745ed12e3a"
+          ]
+      ]
+  },
+  {
+      "id": "db4a8b745ed12e3a",
+      "type": "function",
+      "z": "9dcca6ec57a1a95f",
+      "g": "3713c2fa81a8b881",
+      "name": "Programmation Départ Ecole",
+      "func": "let data = msg.payload;\nmsg.payload = \"\"; // Réinitialiser le PayLoad\n\nconst dateToday = new Date();\nconst joursSemaine = [\"__dimanche__\", \"lundi\", \"mardi\", \"mercredi\", \"jeudi\", \"vendredi\", \"__samedi__\"];\n\nlet joursActifs = []; // Stockage des jours actifs (= true)\n//\n// On fait le tour des jours actifs pour la semaine qui arrive...\n//\n\nfor (let i = 1; i <= 7; i++) {\n    let dateCalculee = new Date();\n        dateCalculee.setDate(dateToday.getDate() + i); // Date pour les i prochains jours (ici 7)\n            \n    const dateAnnee = dateCalculee.getFullYear();\n    const dateMois = ('0' + (dateCalculee.getMonth()+1)).slice(-2); // Slice pour avoir 2 chiffres (1 -> 01, 2 -> 02...)\n    const dateJour = ('0' + (dateCalculee.getDate())).slice(-2);\n    const dateJourSemaine = (i == 1) ? 'demain' : joursSemaine[dateCalculee.getDay()];  // Récupère le numéro du jour (getDay) et va chercher la version fr)\n\n    if (data[dateAnnee+'-'+dateMois+'-'+dateJour] == true) { // si 0000-00-00 est à true, on ajoute le jour dans la liste à diffuser\n        joursActifs.push(dateJourSemaine);\n    }\n}\n\n//\n// Puis on paramètre le message\n//\n\nlet leMessage = \"\";\n\n// Si joursActifs.length >= 1, il y a des jours actifs\nif(joursActifs.length >= 1){\n\n            leMessage = 'Cette semaine, la sonnerie \"départ école\" est programmée';\n            // Si joursActifs.length > 1, il y a plusieurs jours actifs, on ajoute \"et\" avant le dernier...\n            \n            if(joursActifs.length == 1) {\n                leMessage = leMessage + ' uniquement';\n            }\n            if(joursActifs.length >= 2) {\n                joursActifs[joursActifs.length - 1] =  \"et \" + joursActifs[joursActifs.length - 1];\n                for (i=0;i < joursActifs.length - 2; i++) {\n                    joursActifs[i] = joursActifs[i]+ ', ';\n                }\n            } \n\n            // ... et on liste tous les jours pour chaque jour dans le tableau jourActifs\n            \n            joursActifs.forEach(function(jour) {\n                leMessage = leMessage + ' ' + jour;\n            });\n\n            \n        } \n//  Si pas de jours actifs, on personnalise le message\nelse {\n    leMessage = 'Il n\\'y a pas de sonnerie départ école programmée cette semaine\\\\.';\n}\n\n// On ajoute le lien vers la page d'édition\nleMessage = leMessage + '\\\\. Pour tout changement, voir [ce lien](http://192.168.1.2/misc/sonnerieDepartEcole/)';\n\n\nreturn [{\n    destinataires: [\"telegram_vincent\"], // Liste des destinataires et modes de transmission\n    message_notif: `${leMessage}`,\n}, null];",
+      "outputs": 1,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 240,
+      "y": 1260,
+      "wires": [
+          [
+              "daecafdb3f791948"
+          ]
+      ]
+  },
+  {
+      "id": "820eca0caa8f0eef",
+      "type": "inject",
+      "z": "9dcca6ec57a1a95f",
+      "g": "3713c2fa81a8b881",
+      "name": "",
+      "props": [
+          {
+              "p": "payload"
+          }
+      ],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "payload": "trigger:forced",
+      "payloadType": "str",
+      "x": 190,
+      "y": 1140,
+      "wires": [
+          [
+              "ea95ee514ab2e212"
+          ]
+      ]
+  },
+  {
+      "id": "ea95ee514ab2e212",
+      "type": "chronos-scheduler",
+      "z": "9dcca6ec57a1a95f",
+      "g": "3713c2fa81a8b881",
+      "name": "",
+      "config": "6bb36e31794d5fe2",
+      "schedule": [
+          {
+              "trigger": {
+                  "type": "crontab",
+                  "value": "0 20 * * 0"
+              },
+              "output": {
+                  "type": "msg",
+                  "property": {
+                      "name": "payload",
+                      "type": "str",
+                      "value": ""
+                  }
+              }
+          }
+      ],
+      "multiPort": false,
+      "nextEventPort": false,
+      "disabled": false,
+      "outputs": 1,
+      "x": 180,
+      "y": 1180,
+      "wires": [
+          [
+              "0a358313d329d54d"
+          ]
+      ]
+  },
+  {
+      "id": "daecafdb3f791948",
+      "type": "debug",
+      "z": "9dcca6ec57a1a95f",
+      "g": "3713c2fa81a8b881",
+      "name": "",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 450,
+      "y": 1260,
+      "wires": []
+  },
+  {
+      "id": "8ee9d0c3e3d4f1e8",
+      "type": "comment",
+      "z": "9dcca6ec57a1a95f",
+      "g": "3713c2fa81a8b881",
+      "name": "Vers le flow à déclencher",
+      "info": "",
+      "x": 490,
+      "y": 1240,
+      "wires": []
+  },
+  {
+      "id": "5d95df89c261ed80",
+      "type": "comment",
+      "z": "9dcca6ec57a1a95f",
+      "g": "3713c2fa81a8b881",
+      "name": "Check Adresse JSON en Prod",
+      "info": "",
+      "x": 280,
+      "y": 1220,
+      "wires": []
+  },
+  {
+      "id": "6bb36e31794d5fe2",
+      "type": "chronos-config",
+      "name": "Maison",
+      "sunPositions": []
+  }
+]
