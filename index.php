@@ -10,6 +10,7 @@
   </head>
   <body>
 
+
 <?php
 
 /* 
@@ -88,7 +89,12 @@ if(isset($_GET['admin']) == true) {
   }
 
 ?>
-  <div class="card my-3">
+  <nav class="navbar fixed-top navbar-dark bg-danger">
+    <div class="container-fluid justify-content-center ">
+      <span class="badge text-bg-light">Mode administrateur actif</span>
+    </div>
+  </nav>
+  <div class="card my-5">
     <div class="card-header text-center">
       <b>Administration</b>
     </div>
@@ -203,11 +209,11 @@ if(isset($_GET['admin']) == true) {
             echo '</div>';
           }
           ?>
-            <nav class="navbar fixed-bottom navbar-dark bg-dark">
-    <div class="container-fluid  justify-content-center ">
-      <button class="btn btn-outline-light" type="submit" id="btnEnregistrer">Enregistrer</button>
-    </div>
-  </nav>
+      <nav class="navbar fixed-bottom navbar-dark bg-dark">
+        <div class="container-fluid  justify-content-center ">
+          <button class="btn btn-outline-light" type="submit" id="btnEnregistrer">Enregistrer</button>
+        </div>
+      </nav>
         </form>
       </div>
     </div>
