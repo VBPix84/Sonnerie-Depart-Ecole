@@ -1,174 +1,955 @@
 [
-  {
-      "id": "3713c2fa81a8b881",
-      "type": "group",
-      "z": "9dcca6ec57a1a95f",
-      "name": "Notification du dimanche soir pour spécifier les sonneries \"départ école de la semaine\"",
-      "style": {
-          "label": true
-      },
-      "nodes": [
-          "0a358313d329d54d",
-          "db4a8b745ed12e3a",
-          "820eca0caa8f0eef",
-          "ea95ee514ab2e212",
-          "daecafdb3f791948",
-          "8ee9d0c3e3d4f1e8",
-          "5d95df89c261ed80"
-      ],
-      "x": 10,
-      "y": 10,
-      "w": 552,
-      "h": 202
-  },
-  {
-      "id": "0a358313d329d54d",
-      "type": "http request",
-      "z": "9dcca6ec57a1a95f",
-      "g": "3713c2fa81a8b881",
-      "name": "",
-      "method": "GET",
-      "ret": "obj",
-      "paytoqs": "ignore",
-      "url": "http://192.168.1.2/projects/sonnerieDepartEcole/calDepartEcoleV2.json",
-      "tls": "",
-      "persist": false,
-      "proxy": "",
-      "authType": "",
-      "senderr": false,
-      "x": 190,
-      "y": 1220,
-      "wires": [
-          [
-              "db4a8b745ed12e3a"
-          ]
-      ]
-  },
-  {
-      "id": "db4a8b745ed12e3a",
-      "type": "function",
-      "z": "9dcca6ec57a1a95f",
-      "g": "3713c2fa81a8b881",
-      "name": "Programmation Départ Ecole",
-      "func": "let data = msg.payload;\nmsg.payload = \"\"; // Réinitialiser le PayLoad\n\nconst dateToday = new Date();\nconst joursSemaine = [\"__dimanche__\", \"lundi\", \"mardi\", \"mercredi\", \"jeudi\", \"vendredi\", \"__samedi__\"];\n\nlet joursActifs = []; // Stockage des jours actifs (= true)\n//\n// On fait le tour des jours actifs pour la semaine qui arrive...\n//\n\nfor (let i = 1; i <= 7; i++) {\n    let dateCalculee = new Date();\n        dateCalculee.setDate(dateToday.getDate() + i); // Date pour les i prochains jours (ici 7)\n            \n    const dateAnnee = dateCalculee.getFullYear();\n    const dateMois = ('0' + (dateCalculee.getMonth()+1)).slice(-2); // Slice pour avoir 2 chiffres (1 -> 01, 2 -> 02...)\n    const dateJour = ('0' + (dateCalculee.getDate())).slice(-2);\n    const dateJourSemaine = (i == 1) ? 'demain' : joursSemaine[dateCalculee.getDay()];  // Récupère le numéro du jour (getDay) et va chercher la version fr)\n\n    if (data[dateAnnee+'-'+dateMois+'-'+dateJour] == true) { // si 0000-00-00 est à true, on ajoute le jour dans la liste à diffuser\n        joursActifs.push(dateJourSemaine);\n    }\n}\n\n//\n// Puis on paramètre le message\n//\n\nlet leMessage = \"\";\n\n// Si joursActifs.length >= 1, il y a des jours actifs\nif(joursActifs.length >= 1){\n\n            leMessage = 'Cette semaine, la sonnerie \"départ école\" est programmée';\n            // Si joursActifs.length > 1, il y a plusieurs jours actifs, on ajoute \"et\" avant le dernier...\n            \n            if(joursActifs.length == 1) {\n                leMessage = leMessage + ' uniquement';\n            }\n            if(joursActifs.length >= 2) {\n                joursActifs[joursActifs.length - 1] =  \"et \" + joursActifs[joursActifs.length - 1];\n                for (i=0;i < joursActifs.length - 2; i++) {\n                    joursActifs[i] = joursActifs[i]+ ', ';\n                }\n            } \n\n            // ... et on liste tous les jours pour chaque jour dans le tableau jourActifs\n            \n            joursActifs.forEach(function(jour) {\n                leMessage = leMessage + ' ' + jour;\n            });\n\n            \n        } \n//  Si pas de jours actifs, on personnalise le message\nelse {\n    leMessage = 'Il n\\'y a pas de sonnerie départ école programmée cette semaine\\\\.';\n}\n\n// On ajoute le lien vers la page d'édition\nleMessage = leMessage + '\\\\. Pour tout changement, voir [ce lien](http://192.168.1.2/misc/sonnerieDepartEcole/)';\n\n\nreturn [{\n    destinataires: [\"telegram_vincent\"], // Liste des destinataires et modes de transmission\n    message_notif: `${leMessage}`,\n}, null];",
-      "outputs": 1,
-      "noerr": 0,
-      "initialize": "",
-      "finalize": "",
-      "libs": [],
-      "x": 240,
-      "y": 1260,
-      "wires": [
-          [
-              "daecafdb3f791948"
-          ]
-      ]
-  },
-  {
-      "id": "820eca0caa8f0eef",
-      "type": "inject",
-      "z": "9dcca6ec57a1a95f",
-      "g": "3713c2fa81a8b881",
-      "name": "",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "trigger:forced",
-      "payloadType": "str",
-      "x": 190,
-      "y": 1140,
-      "wires": [
-          [
-              "ea95ee514ab2e212"
-          ]
-      ]
-  },
-  {
-      "id": "ea95ee514ab2e212",
-      "type": "chronos-scheduler",
-      "z": "9dcca6ec57a1a95f",
-      "g": "3713c2fa81a8b881",
-      "name": "",
-      "config": "6bb36e31794d5fe2",
-      "schedule": [
-          {
-              "trigger": {
-                  "type": "crontab",
-                  "value": "0 20 * * 0"
-              },
-              "output": {
-                  "type": "msg",
-                  "property": {
-                      "name": "payload",
-                      "type": "str",
-                      "value": ""
-                  }
-              }
-          }
-      ],
-      "multiPort": false,
-      "nextEventPort": false,
-      "disabled": false,
-      "outputs": 1,
-      "x": 180,
-      "y": 1180,
-      "wires": [
-          [
-              "0a358313d329d54d"
-          ]
-      ]
-  },
-  {
-      "id": "daecafdb3f791948",
-      "type": "debug",
-      "z": "9dcca6ec57a1a95f",
-      "g": "3713c2fa81a8b881",
-      "name": "",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "true",
-      "targetType": "full",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 450,
-      "y": 1260,
-      "wires": []
-  },
-  {
-      "id": "8ee9d0c3e3d4f1e8",
-      "type": "comment",
-      "z": "9dcca6ec57a1a95f",
-      "g": "3713c2fa81a8b881",
-      "name": "Vers le flow à déclencher",
-      "info": "",
-      "x": 490,
-      "y": 1240,
-      "wires": []
-  },
-  {
-      "id": "5d95df89c261ed80",
-      "type": "comment",
-      "z": "9dcca6ec57a1a95f",
-      "g": "3713c2fa81a8b881",
-      "name": "Check Adresse JSON en Prod",
-      "info": "",
-      "x": 280,
-      "y": 1220,
-      "wires": []
-  },
-  {
-      "id": "6bb36e31794d5fe2",
-      "type": "chronos-config",
-      "name": "Maison",
-      "sunPositions": []
-  }
+    {
+        "id": "c2e9f62e09ea9b8e",
+        "type": "group",
+        "z": "9dcca6ec57a1a95f",
+        "name": "Notification du dimanche soir pour spécifier les sonneries \"départ école de la semaine\"",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "107f511f5681c2d3",
+            "c528c266e08c85bb",
+            "fc8d958b45062df3",
+            "4e220830fb0decc1",
+            "a1466071c5a35750",
+            "67e94a5b7befa70b"
+        ],
+        "x": 54,
+        "y": 1159,
+        "w": 552,
+        "h": 202
+    },
+    {
+        "id": "5cc31da62db73ce9",
+        "type": "subflow",
+        "name": "Notifier",
+        "info": "",
+        "category": "",
+        "in": [
+            {
+                "x": 40,
+                "y": 360,
+                "wires": [
+                    {
+                        "id": "e6f0c7d4ea2e1cca"
+                    }
+                ]
+            }
+        ],
+        "out": [
+            {
+                "x": 2100,
+                "y": 280,
+                "wires": [
+                    {
+                        "id": "f88ec9072e0461c1",
+                        "port": 0
+                    },
+                    {
+                        "id": "7c22416cf6c4f8ce",
+                        "port": 0
+                    }
+                ]
+            }
+        ],
+        "env": [],
+        "meta": {},
+        "color": "#DDAA99"
+    },
+    {
+        "id": "39e81dbf8eef8f44",
+        "type": "comment",
+        "z": "5cc31da62db73ce9",
+        "name": "Configurer les destinataires",
+        "info": "Renvoie un node pour chaque élement dans le tableau des destinataires\n",
+        "x": 190,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "8e4d174a66c4b37e",
+        "type": "switch",
+        "z": "5cc31da62db73ce9",
+        "name": "Mode de transmission",
+        "property": "modetransmission",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "telegram",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "tts",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 520,
+        "y": 360,
+        "wires": [
+            [
+                "41f5ab2484227af1"
+            ],
+            [
+                "50babaa433f0b34a"
+            ]
+        ]
+    },
+    {
+        "id": "50babaa433f0b34a",
+        "type": "api-current-state",
+        "z": "5cc31da62db73ce9",
+        "name": "Get State",
+        "server": "7393a85d9482cc4a",
+        "version": 3,
+        "outputs": 1,
+        "halt_if": "",
+        "halt_if_type": "str",
+        "halt_if_compare": "is",
+        "entity_id": "media_player.{{destinataire}}",
+        "state_type": "str",
+        "blockInputOverrides": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entity"
+            }
+        ],
+        "for": 0,
+        "forType": "num",
+        "forUnits": "minutes",
+        "x": 740,
+        "y": 360,
+        "wires": [
+            [
+                "92d68ea3d4d6a7d3"
+            ]
+        ]
+    },
+    {
+        "id": "92d68ea3d4d6a7d3",
+        "type": "switch",
+        "z": "5cc31da62db73ce9",
+        "name": "Check status",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "off",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "idle",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "paused",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "playing",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 4,
+        "x": 890,
+        "y": 360,
+        "wires": [
+            [
+                "886d9cf4fe5efc87"
+            ],
+            [
+                "886d9cf4fe5efc87"
+            ],
+            [
+                "886d9cf4fe5efc87"
+            ],
+            [
+                "533174e492129eb7"
+            ]
+        ]
+    },
+    {
+        "id": "533174e492129eb7",
+        "type": "api-call-service",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "server": "7393a85d9482cc4a",
+        "version": 5,
+        "debugenabled": true,
+        "domain": "media_player",
+        "service": "media_pause",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [
+            "media_player.salon"
+        ],
+        "data": "",
+        "dataType": "jsonata",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1140,
+        "y": 560,
+        "wires": [
+            [
+                "e1fc0e580f90f39b"
+            ]
+        ]
+    },
+    {
+        "id": "e1fc0e580f90f39b",
+        "type": "delay",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "2",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1340,
+        "y": 540,
+        "wires": [
+            [
+                "b423d0e2675d386f"
+            ]
+        ]
+    },
+    {
+        "id": "99965415911de185",
+        "type": "api-call-service",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "server": "7393a85d9482cc4a",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "media_player",
+        "service": "media_play",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [
+            "media_player.salon"
+        ],
+        "data": "",
+        "dataType": "jsonata",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1770,
+        "y": 540,
+        "wires": [
+            [
+                "f88ec9072e0461c1"
+            ]
+        ]
+    },
+    {
+        "id": "b423d0e2675d386f",
+        "type": "api-current-state",
+        "z": "5cc31da62db73ce9",
+        "name": "Get State",
+        "server": "7393a85d9482cc4a",
+        "version": 3,
+        "outputs": 2,
+        "halt_if": "playing",
+        "halt_if_type": "str",
+        "halt_if_compare": "is",
+        "entity_id": "media_player.{{destinataire}}",
+        "state_type": "str",
+        "blockInputOverrides": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entity"
+            }
+        ],
+        "for": 0,
+        "forType": "num",
+        "forUnits": "minutes",
+        "x": 1480,
+        "y": 540,
+        "wires": [
+            [
+                "c833a8d5328b70cd"
+            ],
+            [
+                "99965415911de185"
+            ]
+        ]
+    },
+    {
+        "id": "76f6cd4962555fd5",
+        "type": "link in",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "links": [],
+        "x": 1245,
+        "y": 520,
+        "wires": [
+            [
+                "e1fc0e580f90f39b"
+            ]
+        ]
+    },
+    {
+        "id": "c833a8d5328b70cd",
+        "type": "link out",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "mode": "link",
+        "links": [],
+        "x": 1575,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "f88ec9072e0461c1",
+        "type": "change",
+        "z": "5cc31da62db73ce9",
+        "name": "Log",
+        "rules": [
+            {
+                "t": "set",
+                "p": "log",
+                "pt": "msg",
+                "to": "Notification TTS OK",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1990,
+        "y": 400,
+        "wires": [
+            [
+                "3d2a764abea27de9"
+            ]
+        ]
+    },
+    {
+        "id": "886d9cf4fe5efc87",
+        "type": "api-call-service",
+        "z": "5cc31da62db73ce9",
+        "name": "Media Player : ON",
+        "server": "7393a85d9482cc4a",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "media_player",
+        "service": "turn_on",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [
+            "media_player.{{destinataire}}"
+        ],
+        "data": "",
+        "dataType": "json",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1130,
+        "y": 300,
+        "wires": [
+            [
+                "e9ddc01929c132c8"
+            ]
+        ]
+    },
+    {
+        "id": "e9ddc01929c132c8",
+        "type": "delay",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1340,
+        "y": 300,
+        "wires": [
+            [
+                "f33e32d5dfc4e905"
+            ]
+        ]
+    },
+    {
+        "id": "f33e32d5dfc4e905",
+        "type": "api-current-state",
+        "z": "5cc31da62db73ce9",
+        "name": "Get Current Volume",
+        "server": "7393a85d9482cc4a",
+        "version": 3,
+        "outputs": 1,
+        "halt_if": "",
+        "halt_if_type": "str",
+        "halt_if_compare": "is",
+        "entity_id": "media_player.{{destinataire}}",
+        "state_type": "str",
+        "blockInputOverrides": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entity"
+            }
+        ],
+        "for": 0,
+        "forType": "num",
+        "forUnits": "minutes",
+        "x": 1520,
+        "y": 300,
+        "wires": [
+            [
+                "2a20128586c7481a"
+            ]
+        ]
+    },
+    {
+        "id": "2a20128586c7481a",
+        "type": "change",
+        "z": "5cc31da62db73ce9",
+        "name": "Save Current Volume",
+        "rules": [
+            {
+                "t": "set",
+                "p": "current_volume",
+                "pt": "msg",
+                "to": "data.attributes.volume_level",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1740,
+        "y": 300,
+        "wires": [
+            [
+                "2d18daf68f66ba1a"
+            ]
+        ]
+    },
+    {
+        "id": "2d18daf68f66ba1a",
+        "type": "api-call-service",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "server": "7393a85d9482cc4a",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "media_player",
+        "service": "volume_set",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [
+            "media_player.{{destinataire}}"
+        ],
+        "data": "{ \"volume_level\":\"0.8\"}",
+        "dataType": "json",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1210,
+        "y": 360,
+        "wires": [
+            [
+                "e0f8574502d95897"
+            ]
+        ]
+    },
+    {
+        "id": "637a308fd7a611b2",
+        "type": "delay",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "2",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1500,
+        "y": 400,
+        "wires": [
+            [
+                "b4f0934741ec0c3b"
+            ]
+        ]
+    },
+    {
+        "id": "c1af161cec11f526",
+        "type": "api-call-service",
+        "z": "5cc31da62db73ce9",
+        "name": "Reset volume",
+        "server": "7393a85d9482cc4a",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "media_player",
+        "service": "volume_set",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [],
+        "data": "{\"entity_id\":\"media_player.{{destinataire}}\",\"volume_level\":\"{{current_volume}}\"}",
+        "dataType": "json",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1820,
+        "y": 400,
+        "wires": [
+            [
+                "f88ec9072e0461c1"
+            ]
+        ]
+    },
+    {
+        "id": "e5f6ffccf3aa4fc2",
+        "type": "comment",
+        "z": "5cc31da62db73ce9",
+        "name": "En Prod : Modifier Volume Set à plus fort si off ?",
+        "info": "",
+        "x": 1240,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "e0f8574502d95897",
+        "type": "api-call-service",
+        "z": "5cc31da62db73ce9",
+        "name": "TTS sur le Nest",
+        "server": "7393a85d9482cc4a",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "tts",
+        "service": "google_translate_say",
+        "areaId": [],
+        "deviceId": [],
+        "entityId": [],
+        "data": "{\"entity_id\":\"media_player.{{destinataire}}\",\"message\":\"{{message_tts}}\",\"language\":\"fr\"}",
+        "dataType": "json",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "x": 1180,
+        "y": 400,
+        "wires": [
+            [
+                "637a308fd7a611b2"
+            ]
+        ]
+    },
+    {
+        "id": "b4f0934741ec0c3b",
+        "type": "api-current-state",
+        "z": "5cc31da62db73ce9",
+        "name": "Get State",
+        "server": "7393a85d9482cc4a",
+        "version": 3,
+        "outputs": 2,
+        "halt_if": "playing",
+        "halt_if_type": "str",
+        "halt_if_compare": "is",
+        "entity_id": "media_player.{{destinataire}}",
+        "state_type": "str",
+        "blockInputOverrides": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entity"
+            }
+        ],
+        "for": 0,
+        "forType": "num",
+        "forUnits": "minutes",
+        "x": 1640,
+        "y": 400,
+        "wires": [
+            [
+                "f48991066ff4d6fe"
+            ],
+            [
+                "c1af161cec11f526"
+            ]
+        ]
+    },
+    {
+        "id": "f48991066ff4d6fe",
+        "type": "link out",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "mode": "link",
+        "links": [
+            "e94974aaafae557c"
+        ],
+        "x": 1735,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "e94974aaafae557c",
+        "type": "link in",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "links": [
+            "f48991066ff4d6fe"
+        ],
+        "x": 1395,
+        "y": 360,
+        "wires": [
+            [
+                "637a308fd7a611b2"
+            ]
+        ]
+    },
+    {
+        "id": "e6f0c7d4ea2e1cca",
+        "type": "function",
+        "z": "5cc31da62db73ce9",
+        "name": "Split destination (mode et destinataires)",
+        "func": "for (let destinataires of msg.destinataires) {\n    \n    parametres = destinataires.split('_');\n    msg.modetransmission = parametres[0];\n    msg.destinataire = parametres[1];\n    node.send(msg);\n}\n\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 240,
+        "y": 360,
+        "wires": [
+            [
+                "8e4d174a66c4b37e"
+            ]
+        ]
+    },
+    {
+        "id": "3d2a764abea27de9",
+        "type": "debug",
+        "z": "5cc31da62db73ce9",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2150,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "7c22416cf6c4f8ce",
+        "type": "change",
+        "z": "5cc31da62db73ce9",
+        "g": "c88f64b9cde0e6dc",
+        "name": "Log",
+        "rules": [
+            {
+                "t": "set",
+                "p": "log",
+                "pt": "msg",
+                "to": "Notification OK",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1130,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3858781f811b2bc3",
+        "type": "telegram sender",
+        "z": "5cc31da62db73ce9",
+        "g": "c88f64b9cde0e6dc",
+        "name": "",
+        "bot": "819d6b2a7d9bfbf3",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 970,
+        "y": 200,
+        "wires": [
+            [
+                "7c22416cf6c4f8ce"
+            ]
+        ]
+    },
+    {
+        "id": "41f5ab2484227af1",
+        "type": "function",
+        "z": "5cc31da62db73ce9",
+        "g": "c88f64b9cde0e6dc",
+        "name": "Notif Telegram",
+        "func": "let message = msg.message_notif;\n\nlet chat_id = \"\";\n\nswitch (msg.destinataire) {\n    case \"aurore\":\n        chat_id = 5284317821;\n        break;\n    case \"commun\":\n        chat_id = \"-617200380\";\n        break;\n    case \"vincent\":\n        chat_id = 5250504712;\n        break;\n    default:\n        chat_id = \"Erreur\";\n}\n\nmsg.payload = {\n    chatId : `${chat_id}`,\n    type : 'message',\n    content : `${message}`\n};\n\n// activate markdown\nmsg.payload.options = {parse_mode : \"MarkdownV2\"};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 200,
+        "wires": [
+            [
+                "3858781f811b2bc3"
+            ]
+        ]
+    },
+    {
+        "id": "7393a85d9482cc4a",
+        "type": "server",
+        "name": "Home Assistant",
+        "version": 4,
+        "addon": false,
+        "rejectUnauthorizedCerts": true,
+        "ha_boolean": "y|yes|true|on|home|open",
+        "connectionDelay": true,
+        "cacheJson": true,
+        "heartbeat": false,
+        "heartbeatInterval": "30",
+        "areaSelector": "friendlyName",
+        "deviceSelector": "friendlyName",
+        "entitySelector": "friendlyName",
+        "statusSeparator": "at: ",
+        "statusYear": "hidden",
+        "statusMonth": "short",
+        "statusDay": "numeric",
+        "statusHourCycle": "h23",
+        "statusTimeFormat": "h:m"
+    },
+    {
+        "id": "819d6b2a7d9bfbf3",
+        "type": "telegram bot",
+        "botname": "Loutreromaine_bot",
+        "usernames": "",
+        "chatids": "5250504712, 5284317821, 617200380",
+        "baseapiurl": "",
+        "updatemode": "polling",
+        "pollinterval": "300",
+        "usesocks": false,
+        "sockshost": "",
+        "socksport": "6667",
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbotport": "8443",
+        "publicbotport": "8443",
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "107f511f5681c2d3",
+        "type": "http request",
+        "z": "9dcca6ec57a1a95f",
+        "g": "c2e9f62e09ea9b8e",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://192.168.1.2/projects/sonnerieDepartEcole/calDepartEcoleV2.json",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 170,
+        "y": 1280,
+        "wires": [
+            [
+                "c528c266e08c85bb"
+            ]
+        ]
+    },
+    {
+        "id": "c528c266e08c85bb",
+        "type": "function",
+        "z": "9dcca6ec57a1a95f",
+        "g": "c2e9f62e09ea9b8e",
+        "name": "Programmation Départ Ecole",
+        "func": "let data = msg.payload;\nmsg.payload = \"\"; // Réinitialiser le PayLoad\n\nconst dateToday = new Date();\nconst joursSemaine = [\"__dimanche__\", \"lundi\", \"mardi\", \"mercredi\", \"jeudi\", \"vendredi\", \"__samedi__\"];\n\nlet joursActifs = []; // Stockage des jours actifs (= true)\n//\n// On fait le tour des jours actifs pour la semaine qui arrive...\n//\n\nfor (let i = 1; i <= 7; i++) {\n    let dateCalculee = new Date();\n        dateCalculee.setDate(dateToday.getDate() + i); // Date pour les i prochains jours (ici 7)\n            \n    const dateAnnee = dateCalculee.getFullYear();\n    const dateMois = ('0' + (dateCalculee.getMonth()+1)).slice(-2); // Slice pour avoir 2 chiffres (1 -> 01, 2 -> 02...)\n    const dateJour = ('0' + (dateCalculee.getDate())).slice(-2);\n    const dateJourSemaine = (i == 1) ? 'demain' : joursSemaine[dateCalculee.getDay()];  // Récupère le numéro du jour (getDay) et va chercher la version fr)\n\n    if (data[dateAnnee+'-'+dateMois+'-'+dateJour] == true) { // si 0000-00-00 est à true, on ajoute le jour dans la liste à diffuser\n        joursActifs.push(dateJourSemaine);\n    }\n}\n\n//\n// Puis on paramètre le message\n//\n\nlet leMessage = \"\";\n\n// Si joursActifs.length >= 1, il y a des jours actifs\nif(joursActifs.length >= 1){\n\n            leMessage = 'Cette semaine, la sonnerie \"départ école\" est programmée';\n            // Si joursActifs.length > 1, il y a plusieurs jours actifs, on ajoute \"et\" avant le dernier...\n            \n            if(joursActifs.length == 1) {\n                leMessage = leMessage + ' uniquement';\n            }\n            if(joursActifs.length >= 2) {\n                joursActifs[joursActifs.length - 1] =  \"et \" + joursActifs[joursActifs.length - 1];\n                for (i=0;i < joursActifs.length - 2; i++) {\n                    joursActifs[i] = joursActifs[i]+ ', ';\n                }\n            } \n\n            // ... et on liste tous les jours pour chaque jour dans le tableau jourActifs\n            \n            joursActifs.forEach(function(jour) {\n                leMessage = leMessage + ' ' + jour;\n            });\n\n            \n        } \n//  Si pas de jours actifs, on personnalise le message\nelse {\n    leMessage = 'Il n\\'y a pas de sonnerie départ école programmée cette semaine';\n}\n\n// On ajoute le lien vers la page d'édition\nleMessage = leMessage + '\\\\.\\n\\nPour effectuer un changement, voir [ce lien](http://192.168.1.2/misc/sonnerieDepartEcole/)';\n\n\nreturn [{\n    destinataires: [\"telegram_vincent\"], // Liste des destinataires et modes de transmission\n    message_notif: `${leMessage}`,\n}, null];",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 220,
+        "y": 1320,
+        "wires": [
+            [
+                "67e94a5b7befa70b"
+            ]
+        ]
+    },
+    {
+        "id": "fc8d958b45062df3",
+        "type": "inject",
+        "z": "9dcca6ec57a1a95f",
+        "g": "c2e9f62e09ea9b8e",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "trigger:forced",
+        "payloadType": "str",
+        "x": 170,
+        "y": 1200,
+        "wires": [
+            [
+                "4e220830fb0decc1"
+            ]
+        ]
+    },
+    {
+        "id": "4e220830fb0decc1",
+        "type": "chronos-scheduler",
+        "z": "9dcca6ec57a1a95f",
+        "g": "c2e9f62e09ea9b8e",
+        "name": "",
+        "config": "6bb36e31794d5fe2",
+        "schedule": [
+            {
+                "trigger": {
+                    "type": "crontab",
+                    "value": "0 20 * * 0"
+                },
+                "output": {
+                    "type": "msg",
+                    "property": {
+                        "name": "payload",
+                        "type": "str",
+                        "value": ""
+                    }
+                }
+            }
+        ],
+        "multiPort": false,
+        "nextEventPort": false,
+        "disabled": false,
+        "outputs": 1,
+        "x": 160,
+        "y": 1240,
+        "wires": [
+            [
+                "107f511f5681c2d3"
+            ]
+        ]
+    },
+    {
+        "id": "a1466071c5a35750",
+        "type": "comment",
+        "z": "9dcca6ec57a1a95f",
+        "g": "c2e9f62e09ea9b8e",
+        "name": "Vers noeud Notification",
+        "info": "",
+        "x": 480,
+        "y": 1300,
+        "wires": []
+    },
+    {
+        "id": "67e94a5b7befa70b",
+        "type": "subflow:5cc31da62db73ce9",
+        "z": "9dcca6ec57a1a95f",
+        "g": "c2e9f62e09ea9b8e",
+        "name": "",
+        "x": 460,
+        "y": 1320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6bb36e31794d5fe2",
+        "type": "chronos-config",
+        "name": "Maison",
+        "sunPositions": []
+    }
 ]
