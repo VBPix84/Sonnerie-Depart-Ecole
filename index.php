@@ -25,15 +25,14 @@ function parseJson($nomDuFichier){
 }
 
 /* 
-function formaterDate($i, $format)
+function formaterDate($i, $format, $dateInitiale)
 
-Récupère la date actuelle, applique le décalage $i, applique le $format et retourne la variable formatée 
+Sur la date désirée (soit actuelle, soit passé en paramètre $dateInitiale) applique le décalage $i, applique le $format et retourne la variable formatée 
 */
-
-function formaterDate($i, $format){
-  $date = new DateTime();
-  $date->modify('+ '.$i.' days');
-  $dateFormatee = $date->format($format);
+function formaterDate($i, $format, $dateInitiale){
+  $dateInitiale = new DateTime($dateInitiale);
+  $dateInitiale->modify('+ '.$i.' days');
+  $dateFormatee = $dateInitiale->format($format);
 
   return $dateFormatee;
 }
@@ -73,10 +72,35 @@ pour le JSON (le fichier est COMPLETEMENT réécrit puis ré-enregistré)
 //
 // Affichage Mode Admin
 
-if(isset($_GET['admin']) && $_GET['admin'] == true) {
+if(isset($_GET['admin']) == true) {
+  $parsedJson = parseJson($nomDuFichier);
   $nbDatesAffichage = 60; // Nombre de date dans le fichier json = count($parsedJson);
   $nbDatesTotal = count($parsedJson);
-  $nbDatesDepassees = 25;
+
+  // dates dépassées
+  $datesCles = array_keys($parsedJson);
+  $datesDepasees = array();
+
+    foreach ($datesCles as $date) { // Pour chaque date dans le tableau extrait du json...
+      
+      // Date du jour - Date enregistrée
+      $dateActuelle = new DateTime();
+      $dateAComparer = new DateTime($date);
+
+      $differenceTimestamp = $dateActuelle->getTimestamp() - $dateAComparer->getTimestamp();
+      if($differenceTimestamp > (86400-7200)) { // 86400 sec dans 1 journée, - 7200sec de 2h : initialisation à minuit en heure d'été, 1h en heure d'hiver
+        array_push($datesDepasees, $date);
+      } else {
+        break; // si non dépassé, inutile de continuer (puisque les dates sont dans l'ordre chrono)
+      }
+    }
+    
+    //$dateAComparer = new DateTime($parsedJson[$i]);
+   // echo $dateAComparer.' - ';
+  
+
+
+  $nbDatesDepassees = count($datesDepasees);
   $btnDisabled = NULL;
 
   if($nbDatesDepassees >= 20) {
@@ -110,8 +134,8 @@ if(isset($_GET['admin']) && $_GET['admin'] == true) {
             <span class="badge bg-primary"><?php echo $nbDatesTotal; ?></span>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center">
-           Dernière date
-            <span class="badge bg-primary">30/11/2022</span>
+           Dernière date validée
+            <span class="badge bg-primary"><?php echo formaterDate(0, "d/n/Y", array_key_last($parsedJson)); ?></span>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <div class="col-12">
@@ -144,7 +168,7 @@ if(isset($_GET['admin']) && $_GET['admin'] == true) {
 
         </ul>
         <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
-          <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?> disabled>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
+          <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
         </p>
 
     </div>
@@ -187,7 +211,7 @@ if(isset($_GET['admin']) && $_GET['admin'] == true) {
 
             for($i = 0; $i <= $nbDatesAffichage; $i++) { 
               
-              $dateJourYMD = formaterDate($i, 'Y-m-d');
+              $dateJourYMD = formaterDate($i, 'Y-m-d', '');
               $enregistrement[$dateJourYMD] = (array_key_exists($dateJourYMD, $_POST)) ? true : false;
             }
             $aEnregistrer = array_merge($parsedJson, $enregistrement);
@@ -228,12 +252,12 @@ if(isset($_GET['admin']) && $_GET['admin'] == true) {
           for($i = 1; $i < $nbDatesAffichage +1; $i++) {
 
             // Création de la date format AAMMJJ
-            $dateJourYMD = formaterDate($i, 'Y-m-d');
+            $dateJourYMD = formaterDate($i, 'Y-m-d', '');
 
             // Pour passer en français la date affichée
             $listeSemaine = array("Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi");
             $listeMois = array(1=>"janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "decembre");
-            $dateFrancaise = $listeSemaine[formaterDate($i, 'w')].' '.formaterDate($i, 'j').' '.$listeMois[formaterDate($i, 'n')];
+            $dateFrancaise = $listeSemaine[formaterDate($i, 'w', '')].' '.formaterDate($i, 'j', '').' '.$listeMois[formaterDate($i, 'n', '')];
             
             // enregistrement[$dateJourYMD] = (array_key_exists($dateJourYMD, $_POST)) ? true : false;
             if(array_key_exists($dateJourYMD, $parsedJson)) {
