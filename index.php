@@ -117,13 +117,13 @@ if(isset($_GET['admin']) && $_GET['admin'] == true) {
             <div class="col-12">
               <label for="AffichageEntreeNormal" class="form-label">Affichage "Normal"</label>
               <div class="input-group col-6">
-                <select class="form-select" name="AffichageEntreeNormal" id="AffichageEntreeNormal">
+                <select class="form-select" name="AffichageEntreeNormal" id="AffichageEntreeNormal" disabled>
                   <option selected>#</option>
                   <option value="7">1 semaine</option>
                   <option value="14">2 semaines</option>
                   <option value="21">3 semaines</option>
                 </select>
-                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Enregistrer</button>
+                <button class="btn btn-outline-secondary" type="button" id="" disabled>Enregistrer</button>
               </div>
             </div>
           </li>
@@ -131,20 +131,20 @@ if(isset($_GET['admin']) && $_GET['admin'] == true) {
             <div class="col-12">
               <label for="AffichageEntreeAdmin" class="form-label">Affichage mode "Administrateur"</label>
               <div class="input-group col-6">
-              <select class="form-select" name="AffichageEntreeAdmin" id="AffichageEntreeAdmin">
+              <select class="form-select" name="AffichageEntreeAdmin" id="AffichageEntreeAdmin" disabled>
                   <option selected>#</option>
                   <option value="7">1 semaine</option>
                   <option value="14">2 semaines</option>
                   <option value="21">3 semaines</option>
                 </select>
-                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Enregistrer</button>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2" disabled>Enregistrer</button>
               </div>
             </div>
           </li>
 
         </ul>
         <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
-          <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
+          <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?> disabled>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
         </p>
 
     </div>
