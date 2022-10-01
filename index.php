@@ -66,14 +66,17 @@ pour le JSON (le fichier est COMPLETEMENT réécrit puis ré-enregistré)
 */
 ?>
 
-<div class="container col-10 col-sm-5 mt-3 content-align-center" style="margin-bottom : 75px;"> <!-- div qui contient le contenu -->
+<div class="container col-12 col-sm-5 mt-3 content-align-center" style="margin-bottom : 75px;"> <!-- div qui contient le contenu -->
 
 <?php
 
-if(isset($_GET['admin']) == true) {
+//
+// Affichage Mode Admin
+
+if(isset($_GET['admin']) && $_GET['admin'] == true) {
   $nbDatesAffichage = 60; // Nombre de date dans le fichier json = count($parsedJson);
   $nbDatesTotal = count($parsedJson);
-  $nbDatesDepassees = 5;
+  $nbDatesDepassees = 25;
   $btnDisabled = NULL;
 
   if($nbDatesDepassees >= 20) {
@@ -91,10 +94,12 @@ if(isset($_GET['admin']) == true) {
 ?>
   <nav class="navbar fixed-top navbar-dark bg-danger">
     <div class="container-fluid justify-content-center ">
-      <span class="badge text-bg-light">Mode administrateur actif</span>
+      <form method="GET" action="#">
+        <button class="badge btn-outline-danger btn-sm text-bg-light" id="admin" type="submit">Mode administrateur actif</button>
+      </form>
     </div>
   </nav>
-  <div class="card my-5">
+  <div class="card mt-5 mb-2">
     <div class="card-header text-center">
       <b>Administration</b>
     </div>
@@ -105,23 +110,53 @@ if(isset($_GET['admin']) == true) {
             <span class="badge bg-primary"><?php echo $nbDatesTotal; ?></span>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            Nb d'entrées affichées
-            <span class="badge bg-primary"><?php echo $nbDatesAffichage; ?></span>
+           Dernière date
+            <span class="badge bg-primary">30/11/2022</span>
           </li>
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            Nb de dates dépassées
-            <span class="badge <?php echo $styleDateDepassee; ?>"><?php echo $nbDatesDepassees; ?></span>
+            <div class="col-12">
+              <label for="AffichageEntreeNormal" class="form-label">Affichage "Normal"</label>
+              <div class="input-group col-6">
+                <select class="form-select" name="AffichageEntreeNormal" id="AffichageEntreeNormal">
+                  <option selected>#</option>
+                  <option value="7">1 semaine</option>
+                  <option value="14">2 semaines</option>
+                  <option value="21">3 semaines</option>
+                </select>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Enregistrer</button>
+              </div>
+            </div>
           </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="col-12">
+              <label for="AffichageEntreeAdmin" class="form-label">Affichage mode "Administrateur"</label>
+              <div class="input-group col-6">
+              <select class="form-select" name="AffichageEntreeAdmin" id="AffichageEntreeAdmin">
+                  <option selected>#</option>
+                  <option value="7">1 semaine</option>
+                  <option value="14">2 semaines</option>
+                  <option value="21">3 semaines</option>
+                </select>
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Enregistrer</button>
+              </div>
+            </div>
+          </li>
+
         </ul>
         <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
-          <button class="btn btn-sm <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées</button>
+          <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
         </p>
 
     </div>
   </div>
 <?php
 }
+
+//
+// Fin Mode Admin
 ?>
+
+
 
 <div class="card">
   <div class="card-header text-center">
@@ -200,7 +235,12 @@ if(isset($_GET['admin']) == true) {
             $listeMois = array(1=>"janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "decembre");
             $dateFrancaise = $listeSemaine[formaterDate($i, 'w')].' '.formaterDate($i, 'j').' '.$listeMois[formaterDate($i, 'n')];
             
-            $declenchement = ($parsedJson[$dateJourYMD] == true) ? 'checked':'';
+            // enregistrement[$dateJourYMD] = (array_key_exists($dateJourYMD, $_POST)) ? true : false;
+            if(array_key_exists($dateJourYMD, $parsedJson)) {
+              $declenchement = ($parsedJson[$dateJourYMD] == true) ? 'checked':'';
+            } else {
+              $declenchement = '';
+            }
 
             // Affiche la checkbox de la date
             echo '<div class="form-check form-switch">';
