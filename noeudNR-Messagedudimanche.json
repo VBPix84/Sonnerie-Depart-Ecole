@@ -1,22 +1,24 @@
 [
     {
-        "id": "c2e9f62e09ea9b8e",
+        "id": "bea7003f6509b4c1",
         "type": "group",
-        "z": "9dcca6ec57a1a95f",
-        "name": "Notification du dimanche soir pour spécifier les sonneries \"départ école de la semaine\"",
+        "z": "accacba78ee4631b",
+        "name": "Notification hebdomadaire pour sonneries \"départ école de la semaine\"",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#777777",
+            "fill-opacity": "0.16"
         },
         "nodes": [
-            "107f511f5681c2d3",
-            "c528c266e08c85bb",
-            "fc8d958b45062df3",
-            "4e220830fb0decc1",
-            "a1466071c5a35750",
-            "67e94a5b7befa70b"
+            "f9a412d465c3871f",
+            "b5d8dba2e538b1fc",
+            "509044c5bc254e6e",
+            "c5b116ad3bf242a8",
+            "67023409510b6680",
+            "ac9de772dc2d8450"
         ],
         "x": 54,
-        "y": 1159,
+        "y": 1779,
         "w": 552,
         "h": 202
     },
@@ -820,33 +822,33 @@
         "verboselogging": false
     },
     {
-        "id": "107f511f5681c2d3",
+        "id": "f9a412d465c3871f",
         "type": "http request",
-        "z": "9dcca6ec57a1a95f",
-        "g": "c2e9f62e09ea9b8e",
+        "z": "accacba78ee4631b",
+        "g": "bea7003f6509b4c1",
         "name": "",
         "method": "GET",
         "ret": "obj",
         "paytoqs": "ignore",
-        "url": "http://192.168.1.2/projects/sonnerieDepartEcole/calDepartEcoleV2.json",
+        "url": "http://192.168.1.2/misc/sonnerieDepartEcole/calDepartEcoleV2.json",
         "tls": "",
         "persist": false,
         "proxy": "",
         "authType": "",
         "senderr": false,
         "x": 170,
-        "y": 1280,
+        "y": 1900,
         "wires": [
             [
-                "c528c266e08c85bb"
+                "b5d8dba2e538b1fc"
             ]
         ]
     },
     {
-        "id": "c528c266e08c85bb",
+        "id": "b5d8dba2e538b1fc",
         "type": "function",
-        "z": "9dcca6ec57a1a95f",
-        "g": "c2e9f62e09ea9b8e",
+        "z": "accacba78ee4631b",
+        "g": "bea7003f6509b4c1",
         "name": "Programmation Départ Ecole",
         "func": "let data = msg.payload;\nmsg.payload = \"\"; // Réinitialiser le PayLoad\n\nconst dateToday = new Date();\nconst joursSemaine = [\"__dimanche__\", \"lundi\", \"mardi\", \"mercredi\", \"jeudi\", \"vendredi\", \"__samedi__\"];\n\nlet joursActifs = []; // Stockage des jours actifs (= true)\n//\n// On fait le tour des jours actifs pour la semaine qui arrive...\n//\n\nfor (let i = 1; i <= 7; i++) {\n    let dateCalculee = new Date();\n        dateCalculee.setDate(dateToday.getDate() + i); // Date pour les i prochains jours (ici 7)\n            \n    const dateAnnee = dateCalculee.getFullYear();\n    const dateMois = ('0' + (dateCalculee.getMonth()+1)).slice(-2); // Slice pour avoir 2 chiffres (1 -> 01, 2 -> 02...)\n    const dateJour = ('0' + (dateCalculee.getDate())).slice(-2);\n    const dateJourSemaine = (i == 1) ? 'demain' : joursSemaine[dateCalculee.getDay()];  // Récupère le numéro du jour (getDay) et va chercher la version fr)\n\n    if (data[dateAnnee+'-'+dateMois+'-'+dateJour] == true) { // si 0000-00-00 est à true, on ajoute le jour dans la liste à diffuser\n        joursActifs.push(dateJourSemaine);\n    }\n}\n\n//\n// Puis on paramètre le message\n//\n\nlet leMessage = \"\";\n\n// Si joursActifs.length >= 1, il y a des jours actifs\nif(joursActifs.length >= 1){\n\n            leMessage = 'Cette semaine, la sonnerie \"départ école\" est programmée';\n            // Si joursActifs.length > 1, il y a plusieurs jours actifs, on ajoute \"et\" avant le dernier...\n            \n            if(joursActifs.length == 1) {\n                leMessage = leMessage + ' uniquement';\n            }\n            if(joursActifs.length >= 2) {\n                joursActifs[joursActifs.length - 1] =  \"et \" + joursActifs[joursActifs.length - 1];\n                for (i=0;i < joursActifs.length - 2; i++) {\n                    joursActifs[i] = joursActifs[i]+ ', ';\n                }\n            } \n\n            // ... et on liste tous les jours pour chaque jour dans le tableau jourActifs\n            \n            joursActifs.forEach(function(jour) {\n                leMessage = leMessage + ' ' + jour;\n            });\n\n            \n        } \n//  Si pas de jours actifs, on personnalise le message\nelse {\n    leMessage = 'Il n\\'y a pas de sonnerie départ école programmée cette semaine';\n}\n\n// On ajoute le lien vers la page d'édition\nleMessage = leMessage + '\\\\.\\n\\nPour effectuer un changement, voir [ce lien](http://192.168.1.2/misc/sonnerieDepartEcole/)';\n\n\nreturn [{\n    destinataires: [\"telegram_vincent\"], // Liste des destinataires et modes de transmission\n    message_notif: `${leMessage}`,\n}, null];",
         "outputs": 1,
@@ -855,18 +857,18 @@
         "finalize": "",
         "libs": [],
         "x": 220,
-        "y": 1320,
+        "y": 1940,
         "wires": [
             [
-                "67e94a5b7befa70b"
+                "ac9de772dc2d8450"
             ]
         ]
     },
     {
-        "id": "fc8d958b45062df3",
+        "id": "509044c5bc254e6e",
         "type": "inject",
-        "z": "9dcca6ec57a1a95f",
-        "g": "c2e9f62e09ea9b8e",
+        "z": "accacba78ee4631b",
+        "g": "bea7003f6509b4c1",
         "name": "",
         "props": [
             {
@@ -881,18 +883,18 @@
         "payload": "trigger:forced",
         "payloadType": "str",
         "x": 170,
-        "y": 1200,
+        "y": 1820,
         "wires": [
             [
-                "4e220830fb0decc1"
+                "c5b116ad3bf242a8"
             ]
         ]
     },
     {
-        "id": "4e220830fb0decc1",
+        "id": "c5b116ad3bf242a8",
         "type": "chronos-scheduler",
-        "z": "9dcca6ec57a1a95f",
-        "g": "c2e9f62e09ea9b8e",
+        "z": "accacba78ee4631b",
+        "g": "bea7003f6509b4c1",
         "name": "",
         "config": "6bb36e31794d5fe2",
         "schedule": [
@@ -916,32 +918,32 @@
         "disabled": false,
         "outputs": 1,
         "x": 160,
-        "y": 1240,
+        "y": 1860,
         "wires": [
             [
-                "107f511f5681c2d3"
+                "f9a412d465c3871f"
             ]
         ]
     },
     {
-        "id": "a1466071c5a35750",
+        "id": "67023409510b6680",
         "type": "comment",
-        "z": "9dcca6ec57a1a95f",
-        "g": "c2e9f62e09ea9b8e",
+        "z": "accacba78ee4631b",
+        "g": "bea7003f6509b4c1",
         "name": "Vers noeud Notification",
         "info": "",
         "x": 480,
-        "y": 1300,
+        "y": 1920,
         "wires": []
     },
     {
-        "id": "67e94a5b7befa70b",
+        "id": "ac9de772dc2d8450",
         "type": "subflow:5cc31da62db73ce9",
-        "z": "9dcca6ec57a1a95f",
-        "g": "c2e9f62e09ea9b8e",
+        "z": "accacba78ee4631b",
+        "g": "bea7003f6509b4c1",
         "name": "",
         "x": 460,
-        "y": 1320,
+        "y": 1940,
         "wires": [
             []
         ]

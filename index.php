@@ -94,27 +94,22 @@ if(isset($_GET['admin']) == true) {
   // dates dépassées
   $datesCles = array_keys($parsedJson);
   $tabDatesDepasees = array();
-  
-    foreach ($datesCles as $date) { // Pour chaque date dans le tableau extrait du json...
-      
-      // Date du jour - Date enregistrée
-      $dateActuelle = new DateTime();
-      $dateAComparer = new DateTime($date);
+  $dateNow = new \DateTime();
 
-      $differenceTimestamp = $dateActuelle->getTimestamp() - $dateAComparer->getTimestamp();
-      if($differenceTimestamp > (86400)) { // 86400 sec dans 1 journée
-        array_push($tabDatesDepasees, $date); // On ajoute la date dans le tableau
-      } else {
-        break; // si non dépassé, inutile de continuer (puisque les dates sont dans l'ordre chrono)
+    foreach ($datesCles as $date) {
+      $dateAComparer = DateTime::createFromFormat('Y-m-d', $date);
+      
+
+      if($dateAComparer->format('Y-m-d') > $dateNow->format('Y-m-d')) {
+        break;
       }
+      array_push($tabDatesDepasees, $date);
     }
-    
-    //$dateAComparer = new DateTime($parsedJson[$i]);
-   // echo $dateAComparer.' - ';
-   
-  if(array_key_exists('btnPurgerDates', $_GET)) {
-    purgerDates($nomDuFichier, $tabDatesDepasees);
-  }
+
+
+  // if(array_key_exists('btnPurgerDates', $_GET)) {
+  //   purgerDates($nomDuFichier, $tabDatesDepasees);
+  //}
 
   $nbDatesDepassees = count($tabDatesDepasees);
   $btnDisabled = NULL;
@@ -177,7 +172,7 @@ if(isset($_GET['admin']) == true) {
                   <option value="14">2 semaines</option>
                   <option value="21">3 semaines</option>
                 </select>
-                <button class="btn btn-outline-secondary" type="button" id="btnRecAffModeAdmin" disabled>Enregistrer</button>
+                <button class="btn btn-outline-secondary" type="button" id="btnRecAffModeAdmin" onclick="">Enregistrer</button>
               </div>
             </div>
           </li>
@@ -187,7 +182,7 @@ if(isset($_GET['admin']) == true) {
         <form method="GET" target=""?admin=true"">
           <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
           <input name="admin" value="true" type="hidden"><input name="btnPurgerDates" value="true" type="hidden">
-            <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
+            <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?> disabled>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
           </p>
         </form>
 
@@ -313,5 +308,7 @@ if(isset($_GET['admin']) == true) {
       <?php
         }
       ?>
+
+
   </body>
 </html>
