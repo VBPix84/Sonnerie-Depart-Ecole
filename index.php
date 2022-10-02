@@ -13,6 +13,24 @@
 
 <?php
 
+
+/* 
+function purgerDates($fichierTabJson, $tabDatesDepasees)
+
+Suppression des dates dépassées et enregistrées dans le json
+*/
+function purgerDates($fichierTabJson, $tabDatesDepasees){
+
+  $tabJsonEnArray = parseJson($fichierTabJson); // là on a les dates du json dans un tableau
+
+  foreach ($tabDatesDepasees as $dateASuppr) { // Pour chaque date dans le tableau "dates à supprimer"
+    unset($tabJsonEnArray[$dateASuppr]);       // On supprime l'entrée dans le tableau $tabJsonEnArray qui a pour key la date à supprimer
+  }
+
+  file_put_contents($fichierTabJson, json_encode($tabJsonEnArray));
+  $tabDatesDepasees = array('');
+}
+
 /* 
 function parseJson($nomDuFichier)
 
@@ -23,6 +41,7 @@ function parseJson($nomDuFichier){
   $parsedFile = json_decode(file_get_contents($nomDuFichier), true);
   return $parsedFile;
 }
+
 
 /* 
 function formaterDate($i, $format, $dateInitiale)
@@ -37,6 +56,8 @@ function formaterDate($i, $format, $dateInitiale){
   return $dateFormatee;
 }
 
+
+
 /* 
 Initialisation des variables :
 
@@ -47,13 +68,6 @@ Initialisation des variables :
 $nomDuFichier = "calDepartEcoleV2.json";
 $parsedJson = parseJson($nomDuFichier);
 $nbDatesAffichage = 14;
-
-/*
-Modes d'affichages : 
-
-  - Normal : $_GET['admin'] n'existent pas // Affiche la semaine qui arrive (= $nbDatesAffichage)
-  - Admin : $_GET['admin'] == true // Affiche toutes les dates dispo dans le json ("-1 pour enlever la date du jour")
-*/
 
 /*
 Traitement du formulaire via $_POST
@@ -79,8 +93,8 @@ if(isset($_GET['admin']) == true) {
 
   // dates dépassées
   $datesCles = array_keys($parsedJson);
-  $datesDepasees = array();
-
+  $tabDatesDepasees = array();
+  
     foreach ($datesCles as $date) { // Pour chaque date dans le tableau extrait du json...
       
       // Date du jour - Date enregistrée
@@ -88,8 +102,8 @@ if(isset($_GET['admin']) == true) {
       $dateAComparer = new DateTime($date);
 
       $differenceTimestamp = $dateActuelle->getTimestamp() - $dateAComparer->getTimestamp();
-      if($differenceTimestamp > (86400-7200)) { // 86400 sec dans 1 journée, - 7200sec de 2h : initialisation à minuit en heure d'été, 1h en heure d'hiver
-        array_push($datesDepasees, $date);
+      if($differenceTimestamp > (86400)) { // 86400 sec dans 1 journée
+        array_push($tabDatesDepasees, $date); // On ajoute la date dans le tableau
       } else {
         break; // si non dépassé, inutile de continuer (puisque les dates sont dans l'ordre chrono)
       }
@@ -97,10 +111,12 @@ if(isset($_GET['admin']) == true) {
     
     //$dateAComparer = new DateTime($parsedJson[$i]);
    // echo $dateAComparer.' - ';
-  
+   
+  if(array_key_exists('btnPurgerDates', $_GET)) {
+    purgerDates($nomDuFichier, $tabDatesDepasees);
+  }
 
-
-  $nbDatesDepassees = count($datesDepasees);
+  $nbDatesDepassees = count($tabDatesDepasees);
   $btnDisabled = NULL;
 
   if($nbDatesDepassees >= 20) {
@@ -161,15 +177,19 @@ if(isset($_GET['admin']) == true) {
                   <option value="14">2 semaines</option>
                   <option value="21">3 semaines</option>
                 </select>
-                <button class="btn btn-outline-secondary" type="button" id="button-addon2" disabled>Enregistrer</button>
+                <button class="btn btn-outline-secondary" type="button" id="btnRecAffModeAdmin" disabled>Enregistrer</button>
               </div>
             </div>
           </li>
 
         </ul>
-        <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
-          <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
-        </p>
+
+        <form method="GET" target=""?admin=true"">
+          <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
+          <input name="admin" value="true" type="hidden"><input name="btnPurgerDates" value="true" type="hidden">
+            <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
+          </p>
+        </form>
 
     </div>
   </div>
