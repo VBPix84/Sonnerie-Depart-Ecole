@@ -6,10 +6,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
-    <title>Départ Ecole</title>
+    <title>Sonnerie Départ Ecole</title>
   </head>
   <body>
-
 
 <?php
 
@@ -28,7 +27,10 @@ function purgerDates($fichierTabJson, $tabDatesDepasees){
   }
 
   file_put_contents($fichierTabJson, json_encode($tabJsonEnArray));
-  $tabDatesDepasees = array('');
+
+  $tabDatesDepasees = array();
+
+  return $tabDatesDepasees;
 }
 
 /* 
@@ -83,7 +85,6 @@ pour le JSON (le fichier est COMPLETEMENT réécrit puis ré-enregistré)
 
 <?php
 
-//
 // Affichage Mode Admin
 
 if(isset($_GET['admin']) == true) {
@@ -96,20 +97,22 @@ if(isset($_GET['admin']) == true) {
   $tabDatesDepasees = array();
   $dateNow = new \DateTime();
 
-    foreach ($datesCles as $date) {
-      $dateAComparer = DateTime::createFromFormat('Y-m-d', $date);
-      
 
-      if($dateAComparer->format('Y-m-d') > $dateNow->format('Y-m-d')) {
-        break;
-      }
-      array_push($tabDatesDepasees, $date);
+
+
+  foreach ($datesCles as $date) {
+    $dateAComparer = DateTime::createFromFormat('Y-m-d', $date);
+    
+    if($dateAComparer->format('Y-m-d') >= $dateNow->format('Y-m-d')) {
+      break;
     }
+    array_push($tabDatesDepasees, $date);
 
+  }
 
-  // if(array_key_exists('btnPurgerDates', $_GET)) {
-  //   purgerDates($nomDuFichier, $tabDatesDepasees);
-  //}
+  if(array_key_exists('btnSubmitPurgerDates', $_GET)) {
+    $tabDatesDepasees = purgerDates($nomDuFichier, $tabDatesDepasees); // On purge et on vide le tableau
+  }
 
   $nbDatesDepassees = count($tabDatesDepasees);
   $btnDisabled = NULL;
@@ -123,15 +126,12 @@ if(isset($_GET['admin']) == true) {
   } elseif ($nbDatesDepassees == 0) {
     $styleDateDepassee = "bg-success";
     $stylebtnPurge = "btn-outline-success";
-    $btnDisabled = 'disabled';
   }
 
 ?>
   <nav class="navbar fixed-top navbar-dark bg-danger">
-    <div class="container-fluid justify-content-center ">
-      <form method="GET" action="#">
-        <button class="badge btn-outline-danger btn-sm text-bg-light" id="admin" type="submit">Mode administrateur actif</button>
-      </form>
+    <div class="container-fluid justify-content-center">
+      <a class="badge text-bg-light" href="?#">Mode administrateur actif</a>
     </div>
   </nav>
   <div class="card mt-5 mb-2">
@@ -179,12 +179,16 @@ if(isset($_GET['admin']) == true) {
 
         </ul>
 
-        <form method="GET" target=""?admin=true"">
+        <!--
+        <form method="GET" target="/?admin=true">
           <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
-          <input name="admin" value="true" type="hidden"><input name="btnPurgerDates" value="true" type="hidden">
-            <button class="btn <?php echo $stylebtnPurge; ?>" type="submit" <?php echo $btnDisabled; ?> disabled>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
+            <button class="btn <?php echo $stylebtnPurge; ?>" name="btnSubmitPurgerDates" type="submit" <?php echo $btnDisabled; ?>>Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></button>
           </p>
         </form>
+        -->
+          <p class="list-group-item d-flex justify-content-center align-items-center mt-3">
+            <a class="btn <?php echo $stylebtnPurge; ?>" href="?admin=true&btnSubmitPurgerDates=true">Purger les dates dépassées &nbsp;<span class="badge text-bg-secondary"><?php echo $nbDatesDepassees; ?></span></a>
+          </p>
 
     </div>
   </div>
@@ -288,7 +292,7 @@ if(isset($_GET['admin']) == true) {
             echo '</div>';
           }
           ?>
-      <nav class="navbar fixed-bottom navbar-dark bg-dark">
+      <nav class="navbar fixed-bottom navbar-dark bg-primary">
         <div class="container-fluid  justify-content-center ">
           <button class="btn btn-outline-light" type="submit" id="btnEnregistrer">Enregistrer</button>
         </div>
@@ -297,13 +301,10 @@ if(isset($_GET['admin']) == true) {
       </div>
     </div>
     <?php 
-        if(!isset($_GET['admin'])) { // On affiche le bouton uniquement si nous ne sommes pas déjà en mode administrateur
+        if(!isset($_GET['admin'])) { // On affiche le lien uniquement si nous ne sommes pas déjà en mode administrateur...
       ?>
         <div class="text-center py-3">
-          <form method="get" action="">
-            <input name="admin" value="true" type="hidden">
-            <button class="btn btn-sm btn-outline-danger" id="admin" type="submit">Mode Administrateur</button>
-          </form>
+          <a class="badge text-bg-light fw-light" href="?admin=true">Mode administrateur</a>
         </div>
       <?php
         }
