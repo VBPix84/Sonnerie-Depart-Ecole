@@ -3,6 +3,7 @@
 <head>
     <title>Test</title>
     <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <meta charset="UTF-8">
 </head>
 <body>
 
@@ -50,32 +51,40 @@ window.onload = function(){
             
             if(joursActifs.length == 1) {
                 leMessage = leMessage + ' uniquement';
-            }
-            if(joursActifs.length >= 2) {
+            } else {
                 joursActifs[joursActifs.length - 1] =  "et " + joursActifs[joursActifs.length - 1];
                 for (i=0;i < joursActifs.length - 2; i++) {
                     joursActifs[i] = joursActifs[i]+ ', ';
                 }
             } 
-
             // ... et on liste tous les jours pour chaque jour dans le tableau jourActifs
-            
             joursActifs.forEach(function(jour) {
                 leMessage = leMessage + ' ' + jour;
             });
-
-            
         } 
-        // Si pas de jours actifs, on personnalise le message
+        // Si pas de jours actifs
         else {
-            leMessage = 'Il n\'y a pas de sonnerie "d&eacute;part &eacute;cole" de programm&eacute;e cette semaine  ';
+            leMessage = 'Il n\'y a pas de sonnerie "d&eacute;part &eacute;cole" de programm&eacute;e cette semaine';
         }
 
         // On ajoute le lien vers la page d'édition
-        leMessage = leMessage + '\\.\n\nPour effectuer un changement, voir <a href="http://192.168.1.2/projects/work-json/">ici</a>.';
+        leMessage = leMessage + '\\.\n\nPour effectuer un changement, voir [ce lien](http://192.168.1.2/misc/sonnerieDepartEcole/).';
 
+        
+
+        const listeDesDates = Object.keys(data);
+        let dateTarget = listeDesDates[listeDesDates.length -1];
+            dateTarget = dateTarget.split("-");
+        let dateTargetAnnee = dateTarget[0];
+        let dateTargetMois = dateTarget[1].split('-');
+        let dateTargetJour = dateTarget[2].split('-');
+        dateTarget = new Date(dateTargetAnnee, dateTargetMois-1, dateTargetJour, 0, 0, 0)
+        const dateEcart = Math.floor((dateTarget - dateToday)/(24*60*60*1000))
+
+        if(dateEcart <= 15){
+            leMessage = leMessage + '\n\nAttention, il ne reste que quelques jours de contrôlés, rendez-vous sur [la console dadministration](http://192.168.1.2/misc/sonnerieDepartEcole/)'
+        }
         document.write(leMessage);
-       
     });
 }
 
